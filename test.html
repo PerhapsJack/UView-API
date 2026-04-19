@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UView Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background: #4a90e2; color: white; }
+        tr:hover { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>UView UV Badge Dashboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Device ID</th>
+                <th>UVA</th>
+                <th>UVB</th>
+                <th>UVC</th>
+                <th>Temperature</th>
+            </tr>
+        </thead>
+        <tbody id="readings"></tbody>
+    </table>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('http://localhost:8000/data');
+            const data = await response.json();
+            const tbody = document.getElementById('readings');
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${row.timestamp}</td>
+                        <td>${row.device_id}</td>
+                        <td>${row.uva}</td>
+                        <td>${row.uvb}</td>
+                        <td>${row.uvc}</td>
+                        <td>${row.temperature}°C</td>
+                    </tr>
+                `;
+            });
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
