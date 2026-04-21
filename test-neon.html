@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UView Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface-2: #1a2235;
+            --border: #1e2d45;
+            --uv-blue: #00c8ff;
+            --uv-blue-dim: rgba(0, 200, 255, 0.12);
+            --uv-blue-mid: rgba(0, 200, 255, 0.25);
+            --uv-purple: #a855f7;
+            --uv-purple-dim: rgba(168, 85, 247, 0.12);
+            --text-primary: #e8f0fe;
+            --text-secondary: #6b7fa3;
+            --text-muted: #3d4f6b;
+            --success: #10d98e;
+            --warning: #f59e0b;
+            --danger: #f43f5e;
+            --row-hover: rgba(0, 200, 255, 0.04);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 32px;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--uv-blue);
+            opacity: 0.7;
+        }
+
+        h1 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 300;
+            font-size: 28px;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+
+        h1 span {
+            font-weight: 600;
+            color: var(--uv-blue);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 8px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            align-self: flex-start;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--uv-blue-mid); }
+
+        .stat-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 22px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .stat-value.accent { color: var(--uv-blue); }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-right: 4px;
+        }
+
+        .filter-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            padding: 7px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--uv-blue);
+            color: var(--uv-blue);
+            background: var(--uv-blue-dim);
+        }
+
+        .filter-btn.active {
+            background: var(--uv-blue-dim);
+            border-color: var(--uv-blue);
+            color: var(--uv-blue);
+        }
+
+        .spacer { flex: 1; }
+
+        .refresh-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            padding: 7px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            letter-spacing: 0.05em;
+        }
+
+        .refresh-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .refresh-btn svg {
+            transition: transform 0.4s ease;
+        }
+
+        .refresh-btn:hover svg { transform: rotate(180deg); }
+
+        /* Table wrapper */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 14px 20px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th.sortable:hover { color: var(--text-secondary); }
+
+        th .sort-icon {
+            display: inline-block;
+            margin-left: 6px;
+            opacity: 0.3;
+            font-size: 9px;
+        }
+
+        th.sort-asc .sort-icon::after { content: '▲'; opacity: 1; color: var(--uv-blue); }
+        th.sort-desc .sort-icon::after { content: '▼'; opacity: 1; color: var(--uv-blue); }
+        th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: '⇅'; }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+            animation: fadeIn 0.3s ease both;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--row-hover); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .td-timestamp {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .td-device {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+        }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            border: 1px solid;
+        }
+
+        .device-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .td-uv {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .uva { color: #60a5fa; }
+        .uvb { color: #a78bfa; }
+        .uvc { color: #f472b6; }
+        .temp { color: var(--warning); }
+
+        .td-bar-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mini-bar {
+            width: 48px;
+            height: 3px;
+            background: var(--surface-2);
+            border-radius: 2px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .mini-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 64px 20px;
+            color: var(--text-secondary);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+        }
+
+        .empty-state svg { margin-bottom: 16px; opacity: 0.3; }
+
+        /* Footer */
+        footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .footer-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        #row-count { color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="brand">
+            <span class="brand-eyebrow">Monitoring System</span>
+            <h1><span>UView</span> UV Badge Dashboard</h1>
+        </div>
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            LIVE · localhost:8000
+        </div>
+    </header>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-label">Total Readings</span>
+            <span class="stat-value accent" id="stat-total">—</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Devices</span>
+            <span class="stat-value" id="stat-devices">—</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg UVA</span>
+            <span class="stat-value" id="stat-uva">—</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg UVB</span>
+            <span class="stat-value" id="stat-uvb">—</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg Temp</span>
+            <span class="stat-value" id="stat-temp">—</span>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <span class="toolbar-label">Filter</span>
+        <button class="filter-btn active" data-device="all" onclick="setFilter('all', this)">All Devices</button>
+        <div id="device-filters"></div>
+
+        <div class="spacer"></div>
+
+        <button class="refresh-btn" onclick="fetchData()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.5 2A5 5 0 1 0 11 6"/>
+                <polyline points="9,0 11,2 9,4"/>
+            </svg>
+            Refresh
+        </button>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="sortable" onclick="sortBy('timestamp')">Timestamp <span class="sort-icon"></span></th>
+                    <th class="sortable" onclick="sortBy('device_id')">Device <span class="sort-icon"></span></th>
+                    <th class="sortable" onclick="sortBy('uva')">UVA <span class="sort-icon"></span></th>
+                    <th class="sortable" onclick="sortBy('uvb')">UVB <span class="sort-icon"></span></th>
+                    <th class="sortable" onclick="sortBy('uvc')">UVC <span class="sort-icon"></span></th>
+                    <th class="sortable" onclick="sortBy('temperature')">Temperature <span class="sort-icon"></span></th>
+                </tr>
+            </thead>
+            <tbody id="readings"></tbody>
+        </table>
+    </div>
+
+    <footer>
+        <span class="footer-text">Showing <span id="row-count">0</span> readings</span>
+        <span class="footer-text" id="last-updated">—</span>
+    </footer>
+
+</div>
+
+<script>
+    // Colour palette per device (cycles for unknown devices)
+    const DEVICE_COLORS = [
+        { border: 'rgba(168,85,247,0.35)', bg: 'rgba(168,85,247,0.08)', dot: '#a855f7', bar: '#a855f7' },
+        { border: 'rgba(16,217,142,0.35)', bg: 'rgba(16,217,142,0.08)', dot: '#10d98e', bar: '#10d98e' },
+        { border: 'rgba(245,158,11,0.35)',  bg: 'rgba(245,158,11,0.08)',  dot: '#f59e0b', bar: '#f59e0b' },
+        { border: 'rgba(244,63,94,0.35)',   bg: 'rgba(244,63,94,0.08)',   dot: '#f43f5e', bar: '#f43f5e' },
+        { border: 'rgba(0,200,255,0.35)', bg: 'rgba(0,200,255,0.08)', dot: '#00c8ff', bar: '#00c8ff' },
+    ];
+
+    let allData = [];
+    let activeFilter = 'all';
+    let sortCol = 'timestamp';
+    let sortDir = 'desc';
+    let deviceColorMap = {};
+    let deviceIndex = 0;
+
+    function getDeviceColor(id) {
+        if (!deviceColorMap[id]) {
+            deviceColorMap[id] = DEVICE_COLORS[deviceIndex % DEVICE_COLORS.length];
+            deviceIndex++;
+        }
+        return deviceColorMap[id];
+    }
+
+    function setFilter(device, btn) {
+        activeFilter = device;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTable();
+    }
+
+    function sortBy(col) {
+        if (sortCol === col) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortCol = col;
+            sortDir = col === 'timestamp' ? 'desc' : 'asc';
+        }
+        document.querySelectorAll('th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+        });
+        const ths = document.querySelectorAll('th');
+        const colNames = ['timestamp', 'device_id', 'uva', 'uvb', 'uvc', 'temperature'];
+        const idx = colNames.indexOf(sortCol);
+        if (idx >= 0) ths[idx].classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        renderTable();
+    }
+
+    function formatTimestamp(ts) {
+        const d = new Date(ts);
+        if (isNaN(d)) return ts;
+        return d.toLocaleString('en-AU', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+        });
+    }
+
+    function renderTable() {
+        let filtered = activeFilter === 'all'
+            ? [...allData]
+            : allData.filter(r => r.device_id === activeFilter);
+
+        filtered.sort((a, b) => {
+            let va = a[sortCol], vb = b[sortCol];
+            if (typeof va === 'string') va = va.toLowerCase(), vb = vb.toLowerCase();
+            return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+        });
+
+        // Max values for mini bars
+        const maxUva = Math.max(...allData.map(r => r.uva), 0.001);
+        const maxUvb = Math.max(...allData.map(r => r.uvb), 0.001);
+        const maxUvc = Math.max(...allData.map(r => r.uvc), 0.001);
+        const maxTemp = Math.max(...allData.map(r => r.temperature), 0.001);
+
+        const tbody = document.getElementById('readings');
+        tbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div>No readings found</div>
+                    </div>
+                </td></tr>`;
+        } else {
+            filtered.forEach((row, i) => {
+                const c = getDeviceColor(row.device_id);
+                const tr = document.createElement('tr');
+                tr.style.animationDelay = `${i * 30}ms`;
+                tr.innerHTML = `
+                    <td class="td-timestamp">${formatTimestamp(row.timestamp)}</td>
+                    <td class="td-device">
+                        <span class="device-badge" style="color:${c.dot};border-color:${c.border};background:${c.bg}">
+                            <span class="device-dot" style="background:${c.dot}"></span>
+                            ${row.device_id}
+                        </span>
+                    </td>
+                    <td class="td-uv uva">
+                        <div class="td-bar-cell">
+                            ${row.uva.toFixed(2)}
+                            <div class="mini-bar"><div class="mini-bar-fill" style="width:${(row.uva/maxUva*100).toFixed(1)}%;background:#60a5fa"></div></div>
+                        </div>
+                    </td>
+                    <td class="td-uv uvb">
+                        <div class="td-bar-cell">
+                            ${row.uvb.toFixed(2)}
+                            <div class="mini-bar"><div class="mini-bar-fill" style="width:${(row.uvb/maxUvb*100).toFixed(1)}%;background:#a78bfa"></div></div>
+                        </div>
+                    </td>
+                    <td class="td-uv uvc">
+                        <div class="td-bar-cell">
+                            ${row.uvc.toFixed(2)}
+                            <div class="mini-bar"><div class="mini-bar-fill" style="width:${(row.uvc/maxUvc*100).toFixed(1)}%;background:#f472b6"></div></div>
+                        </div>
+                    </td>
+                    <td class="td-uv temp">
+                        <div class="td-bar-cell">
+                            ${row.temperature.toFixed(1)}°C
+                            <div class="mini-bar"><div class="mini-bar-fill" style="width:${(row.temperature/maxTemp*100).toFixed(1)}%;background:#f59e0b"></div></div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('row-count').textContent = filtered.length;
+    }
+
+    function updateStats(data) {
+        const devices = [...new Set(data.map(r => r.device_id))];
+        const avg = key => (data.reduce((s, r) => s + r[key], 0) / data.length).toFixed(2);
+
+        document.getElementById('stat-total').textContent = data.length;
+        document.getElementById('stat-devices').textContent = devices.length;
+        document.getElementById('stat-uva').textContent = data.length ? avg('uva') : '—';
+        document.getElementById('stat-uvb').textContent = data.length ? avg('uvb') : '—';
+        document.getElementById('stat-temp').textContent = data.length ? avg('temperature').replace(/\.?\d+$/, m => m + '°') : '—';
+    }
+
+    function updateDeviceFilters(data) {
+        const devices = [...new Set(data.map(r => r.device_id))].sort();
+        const container = document.getElementById('device-filters');
+        container.innerHTML = '';
+        devices.forEach(id => {
+            const c = getDeviceColor(id);
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.dataset.device = id;
+            btn.style.cssText = `border-color:${c.border};color:${c.dot}`;
+            btn.innerHTML = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${c.dot};margin-right:6px;vertical-align:middle"></span>${id}`;
+            if (activeFilter === id) btn.classList.add('active');
+            btn.onclick = () => setFilter(id, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    async function fetchData() {
+        try {
+            const response = await fetch('http://localhost:8000/data');
+            allData = await response.json();
+            updateStats(allData);
+            updateDeviceFilters(allData);
+            renderTable();
+            document.getElementById('last-updated').textContent =
+                'Updated ' + new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        } catch (e) {
+            document.getElementById('readings').innerHTML = `
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div>Could not connect to API</div>
+                    </div>
+                </td></tr>`;
+        }
+    }
+
+    // Set default sort indicator
+    document.querySelectorAll('th')[0].classList.add('sort-desc');
+
+    fetchData();
+</script>
+</body>
+</html>
